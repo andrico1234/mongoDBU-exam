@@ -11,6 +11,8 @@ function ItemDAO(database) {
             num: 0
         }];
 
+        let counter = 0;
+
         // I want only the categories returned
         // I will then find the total number of items in each category
         // keep track of the total sum, add it to categories[0].num
@@ -29,44 +31,47 @@ function ItemDAO(database) {
                 num: 1
             };
 
+            counter++;
             categories.push(category);
         }, () => {
 
-            categories[0].num = 23;
+            categories[0].num = counter;
             callback(categories);
         });
 
         /*
          * TODO-lab1A
-         *
-         * LAB #1A: Implement the getCategories() method.
-         *
          * Write an aggregation query on the "item" collection to return the
          * total number of items in each category. The documents in the array
          * output by your aggregation should contain fields for "_id" and "num".
-         *
-         * include a document for category "All" in the array of categories
-         * passed to the callback. The "All" category should contain the total
-         * number of items across all categories as its value for "num". The
-         * most efficient way to calculate this value is to iterate through
-         * the array of categories produced by your aggregation query, summing
-         * counts of items in each category.
-         *
-         *
          */
-
-
-        // TODO-lab1A Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the categories array to the
-        // callback.
     };
 
 
     this.getItems = function(category, page, itemsPerPage, callback) {
-        "use strict";
 
+        let findParams = {};
+        let pageItems = [];
+
+        if (category !== 'All') {
+
+            findParams = {
+                category: 'Kitchen'
+            };
+        }
+
+        let cursor = this.db.collection('item').find(findParams)
+            .skip(page * itemsPerPage)
+            .limit(itemsPerPage)
+            .sort({'_id': 1});
+
+        cursor.forEach((doc) => {
+
+            pageItems.push(doc);
+        }, () => {
+
+            callback(pageItems);
+        });
         /*
          * TODO-lab1B
          *
@@ -83,25 +88,8 @@ function ItemDAO(database) {
          * Sort items in ascending order based on the _id field. You must use
          * this sort to answer the final project questions correctly.
          *
-         * Note: Since "All" is not listed as the category for any items,
-         * you will need to query the "item" collection differently for "All"
-         * than you do for other categories.
-         *
          */
-
-        var pageItem = this.createDummyItem();
-        var pageItems = [];
-        for (var i = 0; i < 5; i++) {
-            pageItems.push(pageItem);
-        }
-
-        // TODO-lab1B Replace all code above (in this method).
-
-        // TODO Include the following line in the appropriate
-        // place within your code to pass the items for the selected page
-        // to the callback.
-        callback(pageItems);
-    }
+    };
 
 
     this.getNumItems = function(category, callback) {
